@@ -1,0 +1,9 @@
+package com.vic8b.usermanager.exception;
+
+import org.springframework.http.HttpStatus;
+
+public class NotFoundException extends UserManagerException {
+    public NotFoundException(String message) {
+        super(message, HttpStatus.NOT_FOUND);
+    }
+}

@@ -1,71 +1,42 @@
 package com.vic8b.usermanager.model;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NonNull;
+import com.vic8b.usermanager.command.UserUpdateCommand;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import lombok.*;
 
-import java.time.LocalDate;
-import java.util.UUID;
-import java.util.regex.Pattern;
+import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "users")
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
-            + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$");
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    private final UUID id;
-    private String nickname;
+    private Long id;
+    @Column(nullable = false)
     private String firstName;
+    @Column(nullable = false)
     private String lastName;
+    @Column(nullable = false, unique = true)
+    @Email
     private String email;
-    private final LocalDate creationDate;
-    private boolean active;
+    @Setter
+    private LocalDateTime registeredAt;
 
     @Builder
-    public User(@NonNull String nickname, @NonNull String firstName, @NonNull String lastName, @NonNull String email) {
-        validateNickname(nickname);
-        validateEmail(email);
-
-        this.id = UUID.randomUUID();
-        this.nickname = nickname;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.creationDate = LocalDate.now();
-        this.active = true;
-    }
-
-    public void update(@NonNull String nickname, @NonNull String firstName, @NonNull String lastName, @NonNull String email) {
-        validateNickname(nickname);
-        validateEmail(email);
-        this.nickname = nickname;
+    public User(String firstName, String lastName, String email) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
     }
 
-    private static void validateEmail(@NonNull String email) {
-        if (email.isBlank()) {
-            throw new IllegalArgumentException("Email cannot be blank");
-        }
-        if (!isEmailValid(email)) {
-            throw new IllegalArgumentException("Invalid email");
-        }
-    }
-
-    private static boolean isEmailValid(String email) {
-        return EMAIL_PATTERN.matcher(email).matches();
-    }
-
-    private void validateNickname(String nickname) {
-        if (nickname == null || nickname.isBlank()) {
-            throw new IllegalArgumentException("Nickname cannot be blank");
-        }
-        if (nickname.length() < 3) {
-            throw new IllegalArgumentException("Nickname must contain at least 3 characters");
-        }
+    public void updateUser(UserUpdateCommand command) {
+        this.firstName = command.firstName();
+        this.lastName = command.lastName();
+        this.email = command.email();
     }
 }
